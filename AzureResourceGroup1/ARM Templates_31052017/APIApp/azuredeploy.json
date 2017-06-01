@@ -1,0 +1,192 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "AppServivePlanName": {
+      "type": "String"
+    },
+    "APIAppName": {
+      "type": "String"
+    },
+    "Location": {
+      "type": "String"
+    }
+  },
+  "variables": {
+    "VAPIAppName": "[concat(parameters('APIAppName'), uniqueString(resourceGroup().id))]",
+    "VAppServivePlanName": "[concat(parameters('AppServivePlanName'), uniqueString(resourceGroup().id))]"
+    //"config_web_name": "[concat(parameters('APIAppName'),'/web')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "sku": {
+        "name": "S1",
+        "tier": "Standard",
+        "size": "S1",
+        "family": "S",
+        "capacity": 1
+      },
+      "kind": "app",
+      "name": "[variables('VAppServivePlanName')]",
+      "apiVersion": "2015-08-01",
+      "location": "[parameters('Location')]",
+      "scale": null,
+      "properties": {
+        "name": "[variables('VAppServivePlanName')]",
+        "numberOfWorkers": 1
+      },
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "kind": "api",
+      "name": "[variables('VAPIAppName')]",
+      "apiVersion": "2015-08-01",
+      "location": "[parameters('Location')]",
+      "tags": {
+        "hidden-related:/subscriptions/1658e51a-12fc-4fb0-a88f-f27ffb87db28/resourcegroups/apiappRG/providers/Microsoft.Web/serverfarms/newappserviceplan": "empty"
+      },
+      "scale": null,
+      "properties": {
+        "name": "[variables('VAPIAppName')]",
+        "hostNames": [
+          "[concat(variables('VAPIAppName'),'.azurewebsites.net')]"
+
+        ],
+        "enabledHostNames": [
+          "[concat(variables('VAPIAppName'),'.azurewebsites.net')]",
+          "[concat(variables('VAPIAppName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNameSslStates": [
+          {
+            "name": "[concat(variables('VAPIAppName'),'.azurewebsites.net')]",
+            "sslState": 0,
+            "thumbprint": null,
+            "ipBasedSslState": 0
+          },
+          {
+            "name": "[concat(variables('VAPIAppName'),'.scm.azurewebsites.net')]",
+            "sslState": 0,
+            "thumbprint": null,
+            "ipBasedSslState": 0
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('VAppServivePlanName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('VAppServivePlanName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "name": "[concat(variables('VAPIAppName'),'/web')]",
+      "apiVersion": "2015-08-01",
+      "location": "[parameters('Location')]",
+      "tags": {
+        "hidden-related:/subscriptions/1658e51a-12fc-4fb0-a88f-f27ffb87db28/resourcegroups/apiappRG/providers/Microsoft.Web/serverfarms/newappserviceplan": "empty"
+      },
+      "scale": null,
+      "properties": {
+        "numberOfWorkers": 1,
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php",
+          "hostingstart.html"
+        ],
+        "netFrameworkVersion": "v4.0",
+        "phpVersion": "5.6",
+        "pythonVersion": "",
+        "nodeVersion": "",
+        "linuxFxVersion": "",
+        "requestTracingEnabled": false,
+        "remoteDebuggingEnabled": false,
+        "remoteDebuggingVersion": null,
+        "httpLoggingEnabled": false,
+        "logsDirectorySizeLimit": 35,
+        "detailedErrorLoggingEnabled": false,
+        "publishingUsername": "$api9870",
+        "publishingPassword": null,
+        "appSettings": null,
+        "metadata": null,
+        "connectionStrings": null,
+        "machineKey": null,
+        "handlerMappings": null,
+        "documentRoot": null,
+        "scmType": "None",
+        "use32BitWorkerProcess": true,
+        "webSocketsEnabled": false,
+        "alwaysOn": false,
+        "javaVersion": null,
+        "javaContainer": null,
+        "javaContainerVersion": null,
+        "appCommandLine": "",
+        "managedPipelineMode": 0,
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": false,
+            "virtualDirectories": null
+          }
+        ],
+        "winAuthAdminState": 0,
+        "winAuthTenantState": 0,
+        "customAppPoolIdentityAdminState": false,
+        "customAppPoolIdentityTenantState": false,
+        "runtimeADUser": null,
+        "runtimeADUserPassword": null,
+        "loadBalancing": 1,
+        "routingRules": [],
+        "experiments": {
+          "rampUpRules": []
+        },
+        "limits": null,
+        "autoHealEnabled": false,
+        "autoHealRules": null,
+        "tracingOptions": null,
+        "vnetName": "",
+        "siteAuthEnabled": false,
+        "siteAuthSettings": {
+          "enabled": null,
+          "unauthenticatedClientAction": null,
+          "tokenStoreEnabled": null,
+          "allowedExternalRedirectUrls": null,
+          "defaultProvider": null,
+          "clientId": null,
+          "clientSecret": null,
+          "issuer": null,
+          "allowedAudiences": null,
+          "additionalLoginParams": null,
+          "isAadAutoProvisioned": false,
+          "googleClientId": null,
+          "googleClientSecret": null,
+          "googleOAuthScopes": null,
+          "facebookAppId": null,
+          "facebookAppSecret": null,
+          "facebookOAuthScopes": null,
+          "twitterConsumerKey": null,
+          "twitterConsumerSecret": null,
+          "microsoftAccountClientId": null,
+          "microsoftAccountClientSecret": null,
+          "microsoftAccountOAuthScopes": null
+        },
+        "cors": null,
+        "push": null,
+        "apiDefinition": null,
+        "autoSwapSlotName": null,
+        "localMySqlEnabled": false,
+        "ipSecurityRestrictions": null
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('VAPIAppName'))]"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "Pvaults_backup_name": {
+      "type": "String"
+    },
+    "sqlserverName": {
+      "type": "securestring"
+    },
+    "sqlserverAdminLogin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sqlserverAdminLoginPassword": {
+      "type": "securestring"
+    },
+    "PsqldbName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "Location": {
+      "type": "string"
+    },
+    "sqldbCollation": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+    },
+    "sqldbEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ]
+    },
+    "sqldbRequestedServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "metadata": {
+        "description": "Describes the performance level for Edition"
+      }
+    }
+  },
+  "variables": {
+    "sqlserverName": "[concat(parameters('sqlserverName'), uniqueString(resourceGroup().id))]",
+    "vaults_backup_name": "[concat(parameters('Pvaults_backup_name'), uniqueString(resourceGroup().id))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.RecoveryServices/vaults",
+      "sku": {
+        "name": "RS0",
+        "tier": "Standard"
+      },
+      "name": "[variables('vaults_backup_name')]",
+      "apiVersion": "2016-06-01",
+      "location": "[parameters('Location')]",
+      "scale": null,
+      "properties": {},
+      "dependsOn": []
+    },
+    {
+      "name": "[variables('sqlserverName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01-preview",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "sqlserver"
+      },
+      "properties": {
+        "administratorLogin": "[parameters('sqlserverAdminLogin')]",
+        "administratorLoginPassword": "[parameters('sqlserverAdminLoginPassword')]"
+      },
+      "resources": [
+        {
+          "name": "AllowAllWindowsAzureIps",
+          "type": "firewallrules",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "192.168.1.1",
+            "endIpAddress": "192.168.1.10"
+          }
+        },
+        {
+          "name": "[parameters('PsqldbName')]",
+          "type": "databases",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[variables('sqlserverName')]"
+          ],
+          "tags": {
+            "displayName": "sqldb"
+          },
+          "properties": {
+            "collation": "[parameters('sqldbCollation')]",
+            "edition": "[parameters('sqldbEdition')]",
+            "maxSizeBytes": "1073741824",
+            "requestedServiceObjectiveName": "[parameters('sqldbRequestedServiceObjectiveName')]"
+          }
+        }
+      ]
+    }
+  ]
+}

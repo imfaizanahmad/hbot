@@ -1,0 +1,140 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vaults_backup_name": {
+      "type": "String"
+    },
+    "sqlserverName": {
+      "type": "securestring"
+    },
+    "sqlserverAdminLogin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sqlserverAdminLoginPassword": {
+      "type": "securestring"
+    },
+    "PsqldbName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "Location": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "sqlserverName": "[concat(parameters('sqlserverName'), uniqueString(resourceGroup().id))]",
+    "databases_master_name": "[concat(parameters('sqlserverName'),'/master')]",
+    "firewallRules_AllowAllWindowsAzureIps_name": "[concat(variables('sqlserverName'),'/AllowAllWindowsAzureIps')]",
+    "sqldbName": "[concat(variables('sqlserverName'),'/',parameters('PsqldbName'))]"
+  },
+    "resources": [
+        {
+            "type": "Microsoft.RecoveryServices/vaults",
+            "sku": {
+                "name": "RS0",
+                "tier": "Standard"
+            },
+            "name": "[parameters('vaults_backup_name')]",
+            "apiVersion": "2016-06-01",
+            "location": "[parameters('Location')]",
+            "scale": null,
+            "properties": {},
+            "dependsOn": []
+        },
+      {
+        "comments": "Generalized from resource: '/subscriptions/1658e51a-12fc-4fb0-a88f-f27ffb87db28/resourceGroups/SQLRG/providers/Microsoft.Sql/servers/sqlserverdgtb5mosvgij4'.",
+        "type": "Microsoft.Sql/servers",
+        "kind": "v12.0",
+        "name": "[variables('sqlserverName')]",
+        "apiVersion": "2014-04-01-preview",
+        "location": "[parameters('Location')]",
+        "scale": null,
+        "properties": {
+          "administratorLogin": "[parameters('sqlserverAdminLogin')]",
+          "administratorLoginPassword": "[parameters('sqlserverAdminLoginPassword')]",
+          "version": "12.0"
+        },
+        "dependsOn": []
+      },
+      {
+        "comments": "Generalized from resource: '/subscriptions/1658e51a-12fc-4fb0-a88f-f27ffb87db28/resourceGroups/SQLRG/providers/Microsoft.Sql/servers/sqlserverdgtb5mosvgij4/databases/master'.",
+        "type": "Microsoft.Sql/servers/databases",
+        "kind": "v12.0,system",
+        "name": "[variables('databases_master_name')]",
+        "apiVersion": "2014-04-01-preview",
+        "location": "[parameters('Location')]",
+        "scale": null,
+        "properties": {
+          "databaseId": "1c709055-2c6f-47a1-913d-747c36310067",
+          "edition": "Basic",
+          "status": "Online",
+          "serviceLevelObjective": "Basic",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "maxSizeBytes": "2147483648",
+          "creationDate": "2017-05-31T12:06:27.357Z",
+          "currentServiceObjectiveId": "dd6d99bb-f193-4ec1-86f2-43d3bccbc49c",
+          "requestedServiceObjectiveId": "dd6d99bb-f193-4ec1-86f2-43d3bccbc49c",
+          "requestedServiceObjectiveName": "Basic",
+          "sampleName": null,
+          "defaultSecondaryLocation": "North Europe",
+          "earliestRestoreDate": null,
+          "elasticPoolName": null,
+          "containmentState": 2,
+          "readScale": "Disabled",
+          "failoverGroupId": null
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
+        ]
+      },
+      {
+        "comments": "Generalized from resource: '/subscriptions/1658e51a-12fc-4fb0-a88f-f27ffb87db28/resourceGroups/SQLRG/providers/Microsoft.Sql/servers/sqlserverdgtb5mosvgij4/databases/mytestdb1'.",
+        "type": "Microsoft.Sql/servers/databases",
+        "kind": "v12.0,user",
+        "name": "[variables('sqldbName')]",
+        "apiVersion": "2014-04-01-preview",
+        "location": "[parameters('Location')]",
+        "scale": null,
+        "properties": {
+          "databaseId": "3c2bed3b-3855-410f-ada2-101bdeb10932",
+          "edition": "Basic",
+          "status": "Online",
+          "serviceLevelObjective": "Basic",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "maxSizeBytes": "1073741824",
+          "creationDate": "2017-05-31T12:07:10.567Z",
+          "currentServiceObjectiveId": "dd6d99bb-f193-4ec1-86f2-43d3bccbc49c",
+          "requestedServiceObjectiveId": "dd6d99bb-f193-4ec1-86f2-43d3bccbc49c",
+          "requestedServiceObjectiveName": "Basic",
+          "sampleName": null,
+          "defaultSecondaryLocation": "North Europe",
+          "earliestRestoreDate": "2017-05-31T12:17:47.23Z",
+          "elasticPoolName": null,
+          "containmentState": 2,
+          "readScale": "Disabled",
+          "failoverGroupId": null
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
+        ]
+      },
+      {
+        "comments": "Generalized from resource: '/subscriptions/1658e51a-12fc-4fb0-a88f-f27ffb87db28/resourceGroups/SQLRG/providers/Microsoft.Sql/servers/sqlserverdgtb5mosvgij4/firewallRules/AllowAllWindowsAzureIps'.",
+        "type": "Microsoft.Sql/servers/firewallRules",
+        "kind": "v12.0",
+        "name": "[variables('firewallRules_AllowAllWindowsAzureIps_name')]",
+        "apiVersion": "2014-04-01-preview",
+        "location": "[parameters('Location')]",
+        "scale": null,
+        "properties": {
+          "startIpAddress": "192.168.1.1",
+          "endIpAddress": "192.168.1.10"
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
+        ]
+      }
+    ]
+}
